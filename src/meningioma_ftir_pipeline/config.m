@@ -10,6 +10,7 @@ function cfg = config()
     cfg.paths.qc = 'results/meningioma_ftir_pipeline/qc/';
     
     % === QUALITY CONTROL ===
+    cfg.qc = struct();
     cfg.qc.snr_threshold = 10;
     cfg.qc.max_absorbance = 1.8;
     cfg.qc.baseline_sd_threshold = 0.02;

@@ -4,14 +4,27 @@
 % for meningioma classification.
 
 function quality_control_analysis(cfg)
-    clear; clc;
-    addpath('src/meningioma_ftir_pipeline');
+    % Input validation
+    if ~isstruct(cfg) || ~isfield(cfg, 'paths') || ~isfield(cfg.paths, 'qc')
+        error('Invalid cfg structure. Must contain paths.qc');
+    end
+    
+    % Validate QC parameters
+    if ~isfield(cfg, 'qc')
+        error('Configuration must include qc parameters');
+    end
+    required_qc_fields = {'snr_threshold', 'max_absorbance', 'baseline_sd_threshold', ...
+                         'amide_ratio_min', 'amide_ratio_max'};
+    for i = 1:length(required_qc_fields)
+        if ~isfield(cfg.qc, required_qc_fields{i})
+            error('Configuration missing required QC parameter: %s', required_qc_fields{i});
+        end
+    end
 
     % Create results directory if it doesn't exist
     if ~exist(cfg.paths.qc, 'dir')
         mkdir(cfg.paths.qc);
     end
-
 
     %% Load Data
     fprintf('Loading data...\n');
@@ -19,20 +32,20 @@ function quality_control_analysis(cfg)
     load(fullfile(cfg.paths.data, 'data_table_test.mat'), 'dataTableTest');
     load(fullfile(cfg.paths.data, 'wavenumbers.mat'), 'wavenumbers_roi');
 
-%% LEVEL 1: SPECTRUM-LEVEL QUALITY CONTROL
+    %% LEVEL 1: SPECTRUM-LEVEL QUALITY CONTROL
 
-% Initialize QC results structure
-qc_results = struct();
-qc_results.train = struct();
-qc_results.test = struct();
+    % Initialize QC results structure
+    qc_results = struct();
+    qc_results.train = struct();
+    qc_results.test = struct();
 
-% Process training set
-fprintf('Processing training set...\n');
-qc_results.train = process_sample_set(dataTableTrain, wavenumbers_roi, 'Training');
+    % Process training set
+    fprintf('Processing training set...\n');
+    qc_results.train = process_sample_set(dataTableTrain, wavenumbers_roi, 'Training', cfg);
 
 % Process test set
 fprintf('Processing test set...\n');
-qc_results.test = process_sample_set(dataTableTest, wavenumbers_roi, 'Test');
+qc_results.test = process_sample_set(dataTableTest, wavenumbers_roi, 'Test', cfg);
 
 
     %% Save QC Results
@@ -44,7 +57,7 @@ end
 
 %% Helper Functions
 
-function results = process_sample_set(dataTable, wavenumbers, setName)
+function results = process_sample_set(dataTable, wavenumbers, setName, cfg)
     results = struct();
     n_samples = height(dataTable);
     
@@ -63,8 +76,17 @@ function results = process_sample_set(dataTable, wavenumbers, setName)
     
     % Process each sample
     for i = 1:n_samples
+        % Get spectra for this sample and ensure correct orientation
         spectra = dataTable.CombinedSpectra{i};
-        n_spectra = size(spectra, 1);
+        [n_rows, n_cols] = size(spectra);
+        
+        % Ensure spectra are in rows and wavelengths in columns
+        if n_cols ~= length(wavenumbers)
+            spectra = spectra';
+            [n_rows, n_cols] = size(spectra);
+        end
+        
+        n_spectra = n_rows;
         results.sample_metrics.n_Original(i) = n_spectra;
         
         % Apply QC filters
@@ -74,30 +96,62 @@ function results = process_sample_set(dataTable, wavenumbers, setName)
         signal_region = find(wavenumbers >= 1000 & wavenumbers <= 1700);
         noise_region = find(wavenumbers >= 1750 & wavenumbers <= 1800);
         
+        % Validate that the regions exist in our wavenumber range
+        if isempty(signal_region) || isempty(noise_region)
+            warning('Wavenumber regions for SNR calculation not found in data range');
+            signal_region = 1:floor(length(wavenumbers)/2);  % Use first half for signal
+            noise_region = (floor(length(wavenumbers)/2)+1):length(wavenumbers);  % Use second half for noise
+        end
+        
         snr = zeros(n_spectra, 1);
         for j = 1:n_spectra
             signal = max(spectra(j,signal_region)) - min(spectra(j,signal_region));
             noise = std(spectra(j,noise_region));
-            snr(j) = signal / noise;
+            % Avoid division by zero
+            if noise == 0
+                snr(j) = 0;  % Mark as poor SNR if no noise variation
+            else
+                snr(j) = signal / noise;
+            end
+            % Debug output for SNR calculation
+            if i == 1 && j == 1
+                fprintf('Debug - Sample 1, Spectrum 1:\n');
+                fprintf('Signal: %.4f, Noise: %.4f, SNR: %.4f\n', signal, noise, snr(j));
+            end
         end
-        valid_spectra = valid_spectra & (snr >= 10);
+        valid_spectra = valid_spectra & (snr >= cfg.qc.snr_threshold);
         results.sample_metrics.n_After_SNR(i) = sum(valid_spectra);
         
         % 1.2 Saturation Check
         max_abs = max(spectra, [], 2);
-        valid_spectra = valid_spectra & (max_abs <= 1.8);
+        if i == 1
+            fprintf('Debug - Sample 1: Max absorbance: %.4f\n', max_abs(1));
+        end
+        valid_spectra = valid_spectra & (max_abs <= cfg.qc.max_absorbance);
         results.sample_metrics.n_After_Saturation(i) = sum(valid_spectra);
         
         % 1.3 Baseline Quality
         baseline_region_1 = find(wavenumbers >= 950 & wavenumbers <= 1000);
         baseline_region_2 = find(wavenumbers >= 1750 & wavenumbers <= 1800);
         
+        % Validate that the baseline regions exist in our wavenumber range
+        if isempty(baseline_region_1) || isempty(baseline_region_2)
+            warning('Baseline regions not found in data range');
+            % Use first and last 10% of spectrum for baseline
+            n_points = floor(length(wavenumbers) * 0.1);
+            baseline_region_1 = 1:n_points;
+            baseline_region_2 = (length(wavenumbers)-n_points+1):length(wavenumbers);
+        end
+        
         baseline_sd = zeros(n_spectra, 1);
         for j = 1:n_spectra
             baseline_values = [spectra(j,baseline_region_1), spectra(j,baseline_region_2)];
             baseline_sd(j) = std(baseline_values);
         end
-        valid_spectra = valid_spectra & (baseline_sd <= 0.02);
+        if i == 1
+            fprintf('Debug - Sample 1: Baseline SD: %.4f\n', baseline_sd(1));
+        end
+        valid_spectra = valid_spectra & (baseline_sd <= cfg.qc.baseline_sd_threshold);
         results.sample_metrics.n_After_Baseline(i) = sum(valid_spectra);
         
         % 1.4 & 1.5 Amide Peaks and Ratio Check
@@ -110,7 +164,10 @@ function results = process_sample_set(dataTable, wavenumbers, setName)
             amide_II = max(spectra(j,amide_II_region));
             peak_ratio(j) = amide_I / amide_II;
         end
-        valid_spectra = valid_spectra & (peak_ratio >= 1.2 & peak_ratio <= 3.5);
+        if i == 1
+            fprintf('Debug - Sample 1: Peak ratio: %.4f\n', peak_ratio(1));
+        end
+        valid_spectra = valid_spectra & (peak_ratio >= cfg.qc.amide_ratio_min & peak_ratio <= cfg.qc.amide_ratio_max);
         results.sample_metrics.n_After_Amide(i) = sum(valid_spectra);
         
         % Calculate final valid spectra count
@@ -178,30 +235,31 @@ function generate_qc_report(qc_results, output_dir)
     % Generate visualizations
     
     % 1. SNR Distribution
-    figure('Position', [100, 100, 800, 600]);
+    fig1 = figure('Position', [100, 100, 800, 600], 'Visible', 'off');
     histogram(qc_metrics_train.n_After_SNR ./ qc_metrics_train.n_Original * 100);
     xlabel('Spectra Retained After SNR Check (%)');
     ylabel('Number of Samples');
     title('SNR Filter Impact (Training Set)');
-    saveas(gcf, fullfile(output_dir, 'qc_snr_distribution.png'));
+    saveas(fig1, fullfile(output_dir, 'qc_snr_distribution.png'));
+    close(fig1);
     
     % 2. Within-sample Correlation
-    figure('Position', [100, 100, 800, 600]);
+    fig2 = figure('Position', [100, 100, 800, 600], 'Visible', 'off');
     boxplot([qc_metrics_train.Within_Corr; qc_metrics_test.Within_Corr], ...
             [repmat({'Training'}, height(qc_metrics_train), 1); ...
              repmat({'Test'}, height(qc_metrics_test), 1)]);
     ylabel('Within-sample Correlation');
     title('Spectral Consistency');
-    saveas(gcf, fullfile(output_dir, 'qc_correlation_boxplot.png'));
+    saveas(fig2, fullfile(output_dir, 'qc_correlation_boxplot.png'));
+    close(fig2);
     
     % 3. Spectra Retention
-    figure('Position', [100, 100, 1000, 600]);
+    fig3 = figure('Position', [100, 100, 1000, 600], 'Visible', 'off');
     bar([qc_metrics_train.n_Original, qc_metrics_train.n_Final]);
     xlabel('Sample Index');
     ylabel('Number of Spectra');
     title('Training Set: Original vs Retained Spectra');
     legend({'Original', 'After QC'});
-    saveas(gcf, fullfile(output_dir, 'qc_spectra_retention.png'));
-    
-    close all;
+    saveas(fig3, fullfile(output_dir, 'qc_spectra_retention.png'));
+    close(fig3);
 end

@@ -1,0 +1,235 @@
+Test dir: C:\Users\Franz\OneDrive\01_Promotion\01 Data\new-pipeline\src\meningioma_ftir_pipeline\test
+Pipeline dir: C:\Users\Franz\OneDrive\01_Promotion\01 Data\new-pipeline\src
+Verifying data files...
+Training set: 14 samples
+Test set: 6 samples
+Wavenumbers: 441 points
+[2025-10-21 08:05:45] === MATLAB VERSION INFO ===
+[2025-10-21 08:05:45] Bioinformatics Toolbox Version 24.2
+[2025-10-21 08:05:45] Data Acquisition Toolbox Version 24.2
+[2025-10-21 08:05:45] Deep Learning Toolbox Version 24.2
+[2025-10-21 08:05:45] Image Processing Toolbox Version 24.2
+[2025-10-21 08:05:45] MATLAB Version 24.2
+[2025-10-21 08:05:45] MATLAB Coder Version 24.2
+[2025-10-21 08:05:45] MATLAB Compiler Version 24.2
+[2025-10-21 08:05:45] Medical Imaging Toolbox Version 24.2
+[2025-10-21 08:05:45] Optimization Toolbox Version 24.2
+[2025-10-21 08:05:45] Parallel Computing Toolbox Version 24.2
+[2025-10-21 08:05:45] Signal Processing Toolbox Version 24.2
+[2025-10-21 08:05:45] Statistics and Machine Learning Toolbox Version 24.2
+[2025-10-21 08:05:45] ========================
+[2025-10-21 08:05:45] Starting pipeline execution with test configuration
+[2025-10-21 08:05:45] Starting Phase 0: Quality Control
+Loading data...
+Processing training set...
+Debug - Sample 1, Spectrum 1:
+Signal: 0.1324, Noise: 0.0002, SNR: 597.0585
+Debug - Sample 1: Max absorbance: 0.1375
+Debug - Sample 1: Baseline SD: 0.0013
+Debug - Sample 1: Peak ratio: 1.2482
+Training set processing complete.
+Processing test set...
+Debug - Sample 1, Spectrum 1:
+Signal: 0.1740, Noise: 0.0014, SNR: 121.6123
+Debug - Sample 1: Max absorbance: 0.1789
+Debug - Sample 1: Baseline SD: 0.0015
+Debug - Sample 1: Peak ratio: 1.8356
+Test set processing complete.
+[2025-10-21 08:05:51] Starting Phase 1: Data Loading
+Loading raw data...
+Loading QC results...
+Processing training set...
+Processing test set...
+Creating analysis-ready datasets...
+DEBUG: y_train class: categorical
+DEBUG: y_train is categorical with 3 unique values
+DEBUG: y_train categories: WHO-1, WHO-2, WHO-3
+DEBUG: trainingData.y field type: double
+DEBUG: trainingData has y field
+
+Dataset dimensions after QC:
+Training set: 14 samples × 441 wavenumbers
+Test set: 6 samples × 441 wavenumbers
+
+Class distribution:
+Training WHO-1: 7, WHO-3: 7
+Test WHO-1: 3, WHO-3: 3
+Saving processed data...
+Data preparation complete.
+[2025-10-21 08:05:54] Starting Phase 2: Feature Selection
+Loading preprocessed data...
+DEBUG: Fields in trainingData: X y probe_ids probe_table 
+Loading preprocessed data...
+DEBUG: trainingData.y class: double
+DEBUG: trainingData.y size: [[14 1]]
+Computing PCA on training data...
+Selected 4 PCs explaining 97.2% variance
+DEBUG: WHO-1 samples: 7, WHO-3 samples: 7
+[2025-10-21 08:05:57] Starting Phase 3: Cross-Validation
+Loading transformed training data...\nSetting up cross-validation...\nUsing 3 folds from configuration\nUsing 10 repeats from configuration\nCross-validation settings: 3 folds, 10 repeats\n
+Evaluating LDA...
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+Repeat 10/10
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+[Warning: Zero variance predictor detected. Using pseudolinear discriminant instead.] 
+[> In run_cross_validation (line 107)
+In run_pipeline_test_simplified (line 71)] 
+AUC calculation: Using positive class of type double
+
+Evaluating PLSDA...
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+Repeat 10/10
+AUC calculation: Using positive class of type double
+
+Evaluating SVM...
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+Repeat 10/10
+AUC calculation: Using positive class of type double
+
+Evaluating RandomForest...
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+AUC calculation: Using positive class of type double
+Repeat 10/10
+AUC calculation: Using positive class of type double
+
+Aggregating results...
+
+Best classifier: SVM
+Mean F2-score: 0.469 ± 0.115
+
+===== ERROR OCCURRED =====
+Error message: Unrecognized field name "optimal_params".
+Function: run_cross_validation, Line: 250
+Function: run_pipeline_test_simplified, Line: 71
+
+Latest results directory: C:\Users\Franz\OneDrive\01_Promotion\01 Data\new-pipeline\src\meningioma_ftir_pipeline\test\results\run_20251021_014852
+  .
+  ..
+  pipeline_log.txt
+  preprocessed_data.mat
+  qc
+Unrecognized field name "optimal_params".
+
+Error in run_cross_validation (line 250)
+best_model_info.optimal_params = cv_results{best_idx}.optimal_params;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error in run_pipeline_test_simplified (line 71)
+        cv_results = run_cross_validation(cfg);
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -2,15 +2,22 @@
 % This script runs the complete meningioma classification pipeline
 
 
-function run_full_pipeline()
+function run_full_pipeline(cfg)
+    % Input validation
+    if nargin < 1
+        % If no config provided, load default
+        cfg = config();
+    elseif ~isstruct(cfg) || ~isfield(cfg, 'paths')
+        error('Invalid cfg structure. Must contain paths field.');
+    end
+    
     % Generate unique run ID (timestamp)
     run_id = datestr(now, 'yyyymmdd_HHMMSS');
-    run_folder = fullfile('results', 'meningioma_ftir_pipeline', ['run_' run_id]);
-    model_folder = fullfile('models', 'meningioma_ftir_pipeline', ['run_' run_id]);
+    run_folder = fullfile(cfg.paths.results, ['run_' run_id]);
+    model_folder = fullfile(cfg.paths.models, ['run_' run_id]);
     qc_folder = fullfile(run_folder, 'qc');
 
-    % Load configuration and update paths for this run
-    cfg = config();
+    % Update paths for this run
     cfg.paths.results = [run_folder filesep];
     cfg.paths.models = [model_folder filesep];
     cfg.paths.qc = [qc_folder filesep];
@@ -31,7 +38,13 @@ function run_full_pipeline()
         log_message('========================', log_file);
 
         % Set random seed for reproducibility
-        rng(cfg.random_seed, 'twister');
+        if isfield(cfg, 'random_seed')
+            rng(cfg.random_seed, 'twister');
+        else
+            cfg.random_seed = 42;  % Default seed
+            warning('No random seed specified in cfg. Using default seed 42.');
+            rng(cfg.random_seed, 'twister');
+        end
 
         % Phase 0: Quality Control
         log_message('Starting Phase 0: Quality Control', log_file);
@@ -47,33 +60,35 @@ function run_full_pipeline()
 
         % Phase 3: Cross-Validation
         log_message('Starting Phase 3: Cross-Validation', log_file);
-    run_cross_validation(cfg);
+    cv_results = run_cross_validation(cfg);
 
         % Phase 4: Final Model Training
         log_message('Starting Phase 4: Final Model Training', log_file);
-    train_final_model(cfg);
+    final_model = train_final_model(cfg, cv_results);
 
         % Phase 5: Test Evaluation
         log_message('Starting Phase 5: Test Evaluation', log_file);
-    evaluate_test_set(cfg);
+    test_results = evaluate_test_set(cfg, final_model);
 
         % Phase 6: Report Generation
         log_message('Starting Phase 6: Report Generation', log_file);
-    generate_report(cfg);
+    generate_report(cfg, cv_results, final_model, test_results);
 
         log_message('Pipeline completed successfully!', log_file);
 
     catch ME
-        % Log any errors
-        log_message(sprintf('ERROR: %s', ME.message), log_file);
-        log_message(sprintf('Error in: %s (Line %d)', ME.stack(1).name, ME.stack(1).line), log_file);
-        rethrow(ME);
-
-    finally
-        % Close log file
-        if ~isempty(fopen('all'))
+        % Log any errors and close log file
+        if ~isempty(log_file)
+            log_message(sprintf('ERROR: %s', ME.message), log_file);
+            log_message(sprintf('Error in: %s (Line %d)', ME.stack(1).name, ME.stack(1).line), log_file);
             fclose(log_file);
         end
+        rethrow(ME);
+    end
+    
+    % Close log file if no errors occurred
+    if ~isempty(log_file)
+        fclose(log_file);
     end
 end
 

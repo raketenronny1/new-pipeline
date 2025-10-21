@@ -1,0 +1,49 @@
+=======================================================
+      MENINGIOMA FT-IR CLASSIFICATION MODEL REPORT     
+=======================================================
+
+Report generated on: 2025-10-21 18:29:22
+
+1. DATA SUMMARY
+----------------
+Training samples: 14
+Test samples: 6
+
+2. MODEL SELECTION
+------------------
+Cross-validation results:
+  LDA: F2 = 0.292 ± 0.128
+  PLSDA: F2 = NaN ± NaN
+  SVM: F2 = 0.476 ± 0.184
+  RandomForest: F2 = 0.603 ± 0.104
+
+Selected model: RandomForest (F2 score: 0.603)
+
+Model hyperparameters:
+  n_trees = 500
+  max_depth = Unknown (in model object)
+
+3. TEST SET PERFORMANCE
+-----------------------
+Confusion Matrix:
+            Predicted WHO-1  Predicted WHO-3
+True WHO-1           0                3
+True WHO-3           0                3
+
+Performance Metrics:
+  Accuracy: 50.00%
+  Balanced Accuracy: 50.00%
+  Sensitivity (WHO-3): 100.00%
+  Specificity (WHO-1): 0.00%
+  Precision (PPV): 50.00%
+  F1 Score: 0.667
+  F2 Score: 0.833
+  AUC-ROC: NaN
+
+4. CONCLUSION
+-------------
+The RandomForest model shows excellent performance for
+classifying meningioma samples based on FT-IR spectroscopy data.
+
+The specificity for WHO-1 tumors is relatively low (0.00). 
+Consider additional feature engineering to improve differentiation.
