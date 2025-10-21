@@ -97,14 +97,52 @@ fprintf('Creating analysis-ready datasets...\n');
 % Training data structure
 trainingData = struct();
 trainingData.X = X_train;
-trainingData.y = y_train;
+
+% Debug y_train type and values
+fprintf('DEBUG: y_train class: %s\n', class(y_train));
+if iscategorical(y_train)
+    fprintf('DEBUG: y_train is categorical with %d unique values\n', numel(categories(y_train)));
+    fprintf('DEBUG: y_train categories: %s\n', strjoin(string(categories(y_train)), ', '));
+else
+    fprintf('DEBUG: First few y_train values: ');
+    if iscell(y_train) || isstring(y_train)
+        for i = 1:min(5, numel(y_train))
+            fprintf('%s ', string(y_train(i)));
+        end
+    else
+        for i = 1:min(5, numel(y_train))
+            fprintf('%d ', y_train(i));
+        end
+    end
+    fprintf('\n');
+end
+
+% Ensure y_train is numeric for model training
+if iscategorical(y_train)
+    trainingData.y = double(y_train);
+else
+    trainingData.y = y_train;
+end
+
+% Debug trainingData.y after setting
+fprintf('DEBUG: trainingData.y field type: %s\n', class(trainingData.y));
+if isfield(trainingData, 'y') 
+    fprintf('DEBUG: trainingData has y field\n');
+else
+    fprintf('DEBUG: ERROR - trainingData does not have y field!\n');
+end
 trainingData.probe_ids = probe_ids_train;
 trainingData.probe_table = dataTableTrain(samples_to_keep_train, :);
 
 % Test data structure
 testData = struct();
 testData.X = X_test;
-testData.y = y_test;
+% Ensure y_test is numeric for model evaluation
+if iscategorical(y_test)
+    testData.y = double(y_test);
+else
+    testData.y = y_test;
+end
 testData.probe_ids = probe_ids_test;
 testData.probe_table = dataTableTest(samples_to_keep_test, :);
 
@@ -116,8 +154,25 @@ fprintf('Test set: %d samples × %d wavenumbers\n', size(X_test));
 
 % Check class balance
 fprintf('\nClass distribution:\n');
-fprintf('Training WHO-1: %d, WHO-3: %d\n', sum(y_train==1), sum(y_train==3));
-fprintf('Test WHO-1: %d, WHO-3: %d\n', sum(y_test==1), sum(y_test==3));
+% Handle categorical variables
+if iscategorical(y_train)
+    train_who1 = sum(double(y_train)==1);
+    train_who3 = sum(double(y_train)==3);
+else
+    train_who1 = sum(y_train==1);
+    train_who3 = sum(y_train==3);
+end
+fprintf('Training WHO-1: %d, WHO-3: %d\n', train_who1, train_who3);
+
+% Handle categorical variables
+if iscategorical(y_test)
+    test_who1 = sum(double(y_test)==1);
+    test_who3 = sum(double(y_test)==3);
+else
+    test_who1 = sum(y_test==1);
+    test_who3 = sum(y_test==3);
+end
+fprintf('Test WHO-1: %d, WHO-3: %d\n', test_who1, test_who3);
 
 % Verify data validity
 nan_locs_train = find(isnan(X_train(:)));
@@ -149,5 +204,5 @@ end
     fprintf('Saving processed data...\n');
     save(fullfile(cfg.paths.results, 'preprocessed_data.mat'), 'trainingData', 'testData', 'wavenumbers_roi');
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    fprintf('Data preparation complete.\n');
+    fprintf('Data preparation complete.\n');
 end

@@ -34,11 +34,22 @@ function cfg = config()
     % === CLASSIFIERS ===
     cfg.classifiers.types = {'LDA', 'PLSDA', 'SVM', 'RandomForest'};
     
-    % Hyperparameter grids
+    % Primary classifier for patient-wise CV
+    cfg.classifiers.primary_type = 'SVM';  % 'SVM', 'LDA', or 'RandomForest'
+    
+    % SVM hyperparameters (for patient-wise CV)
+    cfg.classifiers.svm_C = 1;
+    cfg.classifiers.svm_gamma = 'auto';  % Will be calculated as 1/n_features
+    
+    % RandomForest hyperparameters (for patient-wise CV)
+    cfg.classifiers.rf_n_trees = 100;
+    cfg.classifiers.rf_min_leaf_size = 5;
+    
+    % Hyperparameter grids (for original pipeline)
     cfg.classifiers.plsda_n_components = 1:10;
     cfg.classifiers.svm_C_values = 10.^(-2:0.5:2);
     cfg.classifiers.svm_gamma_values = 10.^(-3:0.5:1);
-    cfg.classifiers.rf_n_trees = [50, 100, 200, 500];
+    cfg.classifiers.rf_n_trees_grid = [50, 100, 200, 500];
     cfg.classifiers.rf_max_depth = [5, 10, 20, 30];
     
     % === REPRODUCIBILITY ===
