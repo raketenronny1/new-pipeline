@@ -70,6 +70,7 @@ function results = process_sample_set(dataTable, wavenumbers, setName, cfg)
     results.sample_metrics.n_After_Saturation = zeros(n_samples, 1);
     results.sample_metrics.n_After_Baseline = zeros(n_samples, 1);
     results.sample_metrics.n_After_Amide = zeros(n_samples, 1);
+    results.sample_metrics.n_After_Mahalanobis = zeros(n_samples, 1);
     results.sample_metrics.n_Final = zeros(n_samples, 1);
     results.sample_metrics.Within_Corr = zeros(n_samples, 1);
     results.sample_metrics.Outlier_Flag = false(n_samples, 1);
@@ -170,6 +171,40 @@ function results = process_sample_set(dataTable, wavenumbers, setName, cfg)
         valid_spectra = valid_spectra & (peak_ratio >= cfg.qc.amide_ratio_min & peak_ratio <= cfg.qc.amide_ratio_max);
         results.sample_metrics.n_After_Amide(i) = sum(valid_spectra);
         
+        % 1.6 Mahalanobis Distance Outlier Detection (spectrum-level)
+        % Only apply if we have enough spectra after basic QC
+        if sum(valid_spectra) > 20  % Need sufficient spectra for PCA
+            valid_specs_temp = spectra(valid_spectra, :);
+            
+            % Compute PCA on valid spectra for this sample
+            try
+                [~, score] = pca(valid_specs_temp);
+                
+                % Use first few PCs for outlier detection
+                n_pcs = min(10, size(score, 2));
+                scores_subset = score(:, 1:n_pcs);
+                
+                % Compute Mahalanobis distance
+                mahal_dist = mahal(scores_subset, scores_subset);
+                
+                % Chi-squared threshold from config
+                threshold = chi2inv(cfg.qc.outlier_confidence, n_pcs);
+                
+                % Identify outliers in the valid subset
+                outlier_in_valid = mahal_dist > threshold;
+                
+                % Map back to full spectrum indices
+                valid_indices = find(valid_spectra);
+                valid_spectra(valid_indices(outlier_in_valid)) = false;
+            catch ME
+                % If PCA fails, skip Mahalanobis for this sample
+                warning('Sample %d: Mahalanobis filtering skipped - %s', i, ME.message);
+            end
+        end
+        
+        % Store how many were filtered by Mahalanobis
+        results.sample_metrics.n_After_Mahalanobis(i) = sum(valid_spectra);
+        
         % Calculate final valid spectra count
         results.sample_metrics.n_Final(i) = sum(valid_spectra);
         
@@ -231,6 +266,26 @@ function generate_qc_report(qc_results, output_dir)
     % Write QC metrics to CSV
     writetable(qc_metrics_train, fullfile(output_dir, 'qc_metrics_train.csv'));
     writetable(qc_metrics_test, fullfile(output_dir, 'qc_metrics_test.csv'));
+    
+    % Print summary statistics
+    fprintf('\n=== QC Summary Statistics ===\n');
+    fprintf('Training Set:\n');
+    fprintf('  Total spectra: %d\n', sum(qc_metrics_train.n_Original));
+    fprintf('  After SNR: %d (%.1f%%)\n', sum(qc_metrics_train.n_After_SNR), ...
+        100*sum(qc_metrics_train.n_After_SNR)/sum(qc_metrics_train.n_Original));
+    fprintf('  After Saturation: %d (%.1f%%)\n', sum(qc_metrics_train.n_After_Saturation), ...
+        100*sum(qc_metrics_train.n_After_Saturation)/sum(qc_metrics_train.n_Original));
+    fprintf('  After Baseline: %d (%.1f%%)\n', sum(qc_metrics_train.n_After_Baseline), ...
+        100*sum(qc_metrics_train.n_After_Baseline)/sum(qc_metrics_train.n_Original));
+    fprintf('  After Amide: %d (%.1f%%)\n', sum(qc_metrics_train.n_After_Amide), ...
+        100*sum(qc_metrics_train.n_After_Amide)/sum(qc_metrics_train.n_Original));
+    if isfield(qc_metrics_train, 'n_After_Mahalanobis')
+        fprintf('  After Mahalanobis: %d (%.1f%%)\n', sum(qc_metrics_train.n_After_Mahalanobis), ...
+            100*sum(qc_metrics_train.n_After_Mahalanobis)/sum(qc_metrics_train.n_Original));
+    end
+    fprintf('  Final valid: %d (%.1f%%)\n', sum(qc_metrics_train.n_Final), ...
+        100*sum(qc_metrics_train.n_Final)/sum(qc_metrics_train.n_Original));
+    fprintf('  Samples flagged as outliers: %d\n\n', sum(qc_metrics_train.Outlier_Flag));
     
     % Generate visualizations
     

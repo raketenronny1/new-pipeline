@@ -76,14 +76,17 @@ try
     fprintf('\n  Results summary:\n');
     
     % Display results for each classifier
-    for i = 1:length(cvResults.classifiers)
-        clf_name = cvResults.classifiers{i};
-        metrics = cvResults.patient_metrics.(clf_name);
-        
-        fprintf('    %s:\n', clf_name);
-        fprintf('      Accuracy: %.2f%%\n', metrics.accuracy * 100);
-        fprintf('      Sensitivity: %.2f%%\n', metrics.sensitivity * 100);
-        fprintf('      Specificity: %.2f%%\n', metrics.specificity * 100);
+    classifier_names = {'LDA', 'PLSDA', 'SVM', 'RandomForest'};
+    for i = 1:length(classifier_names)
+        clf_name = classifier_names{i};
+        if isfield(cvResults, clf_name) && isfield(cvResults.(clf_name), 'metrics')
+            metrics = cvResults.(clf_name).metrics;
+            
+            fprintf('    %s:\n', clf_name);
+            fprintf('      Accuracy: %.2f%% ± %.2f%%\n', metrics.accuracy_mean * 100, metrics.accuracy_std * 100);
+            fprintf('      Sensitivity: %.2f%% ± %.2f%%\n', metrics.sensitivity_mean * 100, metrics.sensitivity_std * 100);
+            fprintf('      Specificity: %.2f%% ± %.2f%%\n', metrics.specificity_mean * 100, metrics.specificity_std * 100);
+        end
     end
     
     fprintf('\n═══════════════════════════════════════════════════════════\n');
