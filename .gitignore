@@ -10,3 +10,4 @@ data/metadata_all_patients.mat
 data/split_info.mat
 results/eda/eda_results_PP1.mat
 results/eda_pipeline/eda_results_PP1.mat
+data/test/training_data.mat
