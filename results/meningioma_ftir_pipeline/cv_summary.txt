@@ -2,34 +2,34 @@ MENINGIOMA FTIR CLASSIFICATION - CV RESULTS
 ==========================================
 
 LDA:
-  Accuracy:    0.582 ± 0.145
-  Sensitivity: 0.664 ± 0.215
-  Specificity: 0.501 ± 0.242
-  Precision:   0.571
-  F1-Score:    0.614
-  AUC:         0.582 ± 0.145
+  Accuracy:    0.497 ± 0.083
+  Sensitivity: 0.033 ± 0.066
+  Specificity: 0.974 ± 0.047
+  Precision:   0.568
+  F1-Score:    0.062
+  AUC:         0.497 ± 0.083
 
 PLSDA:
-  Accuracy:    0.579 ± 0.145
-  Sensitivity: 0.660 ± 0.214
-  Specificity: 0.498 ± 0.242
-  Precision:   0.568
-  F1-Score:    0.611
-  AUC:         0.579 ± 0.145
+  Accuracy:    0.878 ± 0.095
+  Sensitivity: 0.878 ± 0.144
+  Specificity: 0.878 ± 0.130
+  Precision:   0.881
+  F1-Score:    0.879
+  AUC:         0.878 ± 0.095
 
 SVM:
-  Accuracy:    0.645 ± 0.158
-  Sensitivity: 0.654 ± 0.274
-  Specificity: 0.636 ± 0.334
-  Precision:   0.643
-  F1-Score:    0.648
-  AUC:         0.645 ± 0.158
+  Accuracy:    0.843 ± 0.113
+  Sensitivity: 0.845 ± 0.143
+  Specificity: 0.840 ± 0.176
+  Precision:   0.844
+  F1-Score:    0.845
+  AUC:         0.843 ± 0.113
 
 RandomForest:
-  Accuracy:    0.500 ± 0.077
-  Sensitivity: 0.000 ± 0.000
-  Specificity: 1.000 ± 0.000
-  Precision:   NaN
-  F1-Score:    0.000
-  AUC:         0.500 ± 0.077
+  Accuracy:    0.727 ± 0.128
+  Sensitivity: 0.764 ± 0.185
+  Specificity: 0.689 ± 0.216
+  Precision:   0.716
+  F1-Score:    0.739
+  AUC:         0.727 ± 0.128
 

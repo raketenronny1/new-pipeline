@@ -1,8 +1,15 @@
 # Meningioma FTIR Classification Pipeline
 
-Machine learning pipeline for classifying meningioma tumors (WHO Grade 1 vs 3) using FTIR spectroscopy data.
+**Unified machine learning pipeline for classifying meningioma tumors (WHO Grade 1 vs 3) using FTIR spectroscopy data.**
+
+**Version**: 4.0 (October 2025) - Refactored & Streamlined  
+**Status**: Production-ready with EDA-based outlier detection
+
+---
 
 ## 🚀 Quick Start
+
+### **Option 1: Run Complete Pipeline (Recommended)**
 
 ```matlab
 % Navigate to project root
@@ -11,20 +18,40 @@ cd 'c:\Users\Franz\OneDrive\01_Promotion\01 Data\new-pipeline'
 % Add source to path
 addpath('src/meningioma_ftir_pipeline');
 
-% Run validation tests
-test_direct_pipeline
-
-% Run full pipeline
-run_pipeline_direct()
+% Run complete pipeline (EDA + CV + Export)
+run_pipeline()
 ```
+
+That's it! The pipeline will:
+1. Run exploratory data analysis (EDA) with outlier detection
+2. Load and filter data based on EDA results
+3. Perform patient-stratified cross-validation
+4. Export results to Excel and text files
+
+### **Option 2: Step-by-Step Execution**
+
+```matlab
+% Step 1: Run EDA (only needed once)
+run_eda()
+
+% Step 2: Run pipeline without repeating EDA
+run_pipeline('RunEDA', false)
+
+% Quick test (3 folds, 10 repeats)
+run_pipeline('RunEDA', false, 'NFolds', 3, 'NRepeats', 10)
+```
+
+---
 
 ## 📖 Documentation
 
-All documentation is in the **[`docs/`](docs/)** folder:
+**Essential Docs** (Read these first):
+- **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)** - Complete usage guide (NEW)
+- **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Function reference (NEW)
 
-- **[docs/REFACTORED_PIPELINE.md](docs/REFACTORED_PIPELINE.md)** - Current pipeline usage guide
-- **[docs/DEVELOPMENT_HISTORY.md](docs/DEVELOPMENT_HISTORY.md)** - Complete development history
-- **[docs/README.md](docs/README.md)** - Full documentation index
+**Additional Resources**:
+- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development history & design decisions
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Pipeline architecture overview
 
 ## 📁 Project Structure
 
@@ -42,11 +69,13 @@ new-pipeline/
 
 ## ✨ Key Features
 
-- ✅ **Patient-wise stratified CV** - Prevents data leakage
-- ✅ **Individual spectrum prediction** - No averaging before classification
-- ✅ **Direct table access** - Fast, efficient data loading
-- ✅ **Quality control** - Automated QC with multiple metrics
-- ✅ **Multiple classifiers** - LDA, PLSDA, SVM, Random Forest
+- ✅ **EDA-based outlier detection** - T² and Q statistics for robust quality control
+- ✅ **Patient-wise stratified CV** - Prevents data leakage across patients
+- ✅ **Individual spectrum prediction** - No averaging, preserves intra-sample variability
+- ✅ **Unified interface** - Single entry point with flexible options
+- ✅ **Multiple classifiers** - LDA (with PCA), PLS-DA, SVM-RBF, Random Forest
+- ✅ **Hyperparameter optimization** - Bayesian optimization for all classifiers
+- ✅ **Comprehensive exports** - Excel, text summaries, MATLAB structures
 
 ## 📊 Data
 
@@ -59,13 +88,21 @@ new-pipeline/
 - Baker et al. (2014). *Nature Protocols* 9(8):1771-1791
 - Greener et al. (2022). *Nature Reviews Molecular Cell Biology* 23:40-55
 
-## 📝 Version
+## 📝 Recent Updates
 
-**Current Version**: 3.0 (October 2025)
-- Refactored for direct table access
-- Eliminated intermediate files
-- 57% code reduction
-- 63% faster data loading
+**Version 4.0** (October 24, 2025)
+- 🎯 **Unified pipeline** - Single `run_pipeline()` entry point
+- 🔬 **EDA integration** - Outlier detection via T²-Q statistics
+- 🧹 **Code consolidation** - 3 data loaders → 1, multiple runners → 1
+- 📦 **Better organization** - Tests in `tests/`, utilities in `src/utils/`
+- 📚 **Streamlined docs** - Clear, non-redundant documentation
+
+**What Changed**:
+- Replaced `run_pipeline_direct()`, `run_pipeline_with_eda()`, `run_full_eda()` → `run_pipeline()`
+- Replaced `load_data_direct()`, `load_data_with_eda()`, `load_and_prepare_data()` → `load_pipeline_data()`
+- Moved test files from root to `tests/` directory
+- Extracted common export functions to `src/utils/`
+- All old versions backed up to `archive/2025-10-24_refactoring/`
 
 ## 🆘 Support
 

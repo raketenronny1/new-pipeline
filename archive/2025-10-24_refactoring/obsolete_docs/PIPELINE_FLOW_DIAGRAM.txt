@@ -1,0 +1,192 @@
+PIPELINE DATA FLOW DIAGRAM
+═══════════════════════════════════════════════════════════════
+
+INPUT DATA
+══════════
+┌──────────────────────────┐
+│ dataset_complete.mat     │ ← Created by prepare_ftir_dataset.m
+│ - 76 probes total        │
+│ - WHO-1, WHO-2, WHO-3    │
+│ - CombinedSpectra_PP1/2  │
+└────────────┬─────────────┘
+             │
+             ↓
+┌──────────────────────────┐
+│ data_table_train.mat     │ ← Created by split_train_test.m
+│ - Training set           │   - Patient-level split
+│ - WHO-1 & WHO-3 only     │   - Balanced classes
+└────────────┬─────────────┘   - No patient overlap with test
+             │
+             ↓
+┌──────────────────────────┐
+│ data_table_test.mat      │
+│ - Test set               │
+│ - Methylation patients   │
+└──────────────────────────┘
+
+
+PHASE 1: EDA (Exploratory Data Analysis)
+═════════════════════════════════════════
+run_full_eda.m
+│
+├─> exploratory_data_analysis.m
+│   │
+│   ├─ Load training data (WHO-1 & WHO-3)
+│   ├─ Build spectrum matrix: [n_spectra × n_wavenumbers]
+│   ├─ Perform PCA on training spectra
+│   │  └─> 15 components (>90% variance)
+│   │
+│   ├─ Compute outlier statistics:
+│   │  ├─ T² (Hotelling): Distance in PC space
+│   │  └─ Q (SPE): Reconstruction error
+│   │
+│   ├─ Identify outliers:
+│   │  └─> Spectra exceeding BOTH T² AND Q thresholds
+│   │
+│   └─ Generate visualizations:
+│      ├─ Mean spectra per WHO grade
+│      ├─ Individual probe spectra
+│      ├─ T²-Q plot with outliers
+│      └─ PCA score plots
+│
+└─> OUTPUT: eda_results_PP1.mat
+    │
+    ├─ pca.coeff [n_wavenumbers × 15]   ← PCA loadings
+    ├─ pca.score [n_spectra × 15]       ← PCA scores
+    ├─ pca.outliers_both [n_spectra × 1] ← Outlier flags (1-5%)
+    ├─ probe_ids_pca [n_spectra × 1]    ← ProbeUID mapping
+    ├─ is_train [n_spectra × 1]         ← Train vs test flags
+    ├─ X_mean [1 × n_wavenumbers]       ← Mean spectrum
+    └─ wavenumbers [1 × n_wavenumbers]
+
+
+PHASE 2: DATA LOADING
+══════════════════════
+load_data_with_eda.m
+│
+├─ Load eda_results_PP1.mat
+│  └─> Get outlier flags & PCA model
+│
+├─ Load data_table_train.mat
+│  └─> Training samples
+│
+├─ For each training sample:
+│  ├─ Get spectra matrix
+│  ├─ Map to ProbeUID
+│  ├─ Find outlier flags for this probe
+│  └─ Remove outlier spectra
+│     └─> Keep only valid spectra
+│
+├─ Load data_table_test.mat
+│  └─> Keep ALL spectra (no filtering)
+│
+└─> OUTPUT: data structure
+    │
+    ├─ train:
+    │  ├─ spectra {n_samples × 1} cell ← Outliers removed
+    │  ├─ labels [n_samples × 1]
+    │  ├─ patient_id {n_samples × 1}
+    │  └─ n_spectra_removed
+    │
+    ├─ test:
+    │  ├─ spectra {n_samples × 1} cell ← All spectra kept
+    │  └─ labels [n_samples × 1]
+    │
+    └─ pca_model:
+       ├─ coeff [n_wavenumbers × 15]  ← For LDA
+       ├─ n_comp = 15
+       ├─ X_mean
+       └─ total_variance
+
+
+PHASE 3: CROSS-VALIDATION
+══════════════════════════
+run_patientwise_cv_direct.m
+│
+├─ For each repeat (1 to 50):
+│  │
+│  ├─ Create patient-stratified folds (5 folds)
+│  │  └─> No patient appears in multiple folds
+│  │
+│  └─ For each fold:
+│     │
+│     ├─ Extract train/val samples
+│     ├─ Expand to spectrum-level matrices
+│     ├─ Standardize (mean=0, std=1)
+│     │
+│     └─ For each classifier:
+│        │
+│        ├─ LDA:
+│        │  ├─ Apply EDA PCA transform (15 PCs) ← Uses data.pca_model
+│        │  ├─ Train LDA on PCA features
+│        │  └─ Predict validation samples
+│        │
+│        ├─ PLS-DA:
+│        │  ├─ Use standardized spectra (NO PCA)
+│        │  ├─ Train PLS-DA
+│        │  └─ Predict validation samples
+│        │
+│        ├─ SVM-RBF:
+│        │  ├─ Use standardized spectra (NO PCA)
+│        │  ├─ Train SVM with RBF kernel
+│        │  └─ Predict validation samples
+│        │
+│        └─ Random Forest:
+│           ├─ Use standardized spectra (NO PCA)
+│           ├─ Train RF
+│           └─ Predict validation samples
+│
+└─> OUTPUT: cv_results
+    │
+    ├─ LDA.metrics (accuracy, sensitivity, specificity, AUC)
+    ├─ PLSDA.metrics
+    ├─ SVM.metrics
+    └─ RandomForest.metrics
+
+
+PHASE 4: RESULTS EXPORT
+════════════════════════
+run_pipeline_with_eda.m
+│
+├─ Display results table
+│  └─> Classifier | Accuracy | Sensitivity | Specificity | AUC
+│
+├─ Find best classifier
+│  └─> Based on accuracy
+│
+└─> OUTPUTS:
+    ├─ cv_results_eda_pipeline.mat  (Full results)
+    ├─ cv_predictions.xlsx          (Per-sample predictions)
+    └─ cv_summary.txt               (Performance summary)
+
+
+KEY DIFFERENCES FROM OLD PIPELINE
+═══════════════════════════════════
+OLD:                          NEW:
+────────────────────────────────────────────────────────
+quality_control_analysis.m → exploratory_data_analysis.m
+  - Mahalanobis distance       - T²-Q statistics
+  - Per-sample QC flags        - Per-spectrum outlier flags
+  
+load_data_direct.m         → load_data_with_eda.m
+  - Uses QC flags              - Uses EDA outlier flags
+  - No PCA model saved         - Packages PCA model (15 PCs)
+
+LDA in CV:
+  - PCA per fold               - Single EDA PCA (consistent)
+  - Variable # components      - Fixed 15 components
+  - Inconsistent feature space - Consistent feature space
+
+Other classifiers:
+  - Same (standardized spectra, no change)
+
+
+BENEFITS
+════════
+✓ Single PCA model (computed once, used everywhere)
+✓ Statistical outlier detection (T², Q)
+✓ Visual interpretation (plots)
+✓ Fewer redundant computations
+✓ Consistent feature space for LDA
+✓ Test set integrity (no filtering)
+✓ Backward compatible (old pipeline still works)
