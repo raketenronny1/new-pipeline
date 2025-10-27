@@ -1,3 +1,12 @@
 data/data_table_test.mat
 data/wavenumbers.mat
 data/data_table_train.mat
+data/allspekTable.mat
+data/archive/dataset_complete-old.mat
+data/dataset_complete.mat
+data/example-code/run_ftir_data_preparation_pipeline.m
+data/example-code/run_split_training_test.m
+data/metadata_all_patients.mat
+data/split_info.mat
+results/eda/eda_results_PP1.mat
+results/eda_pipeline/eda_results_PP1.mat
