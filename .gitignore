@@ -12,12 +12,9 @@
 data/example-code/run_ftir_data_preparation_pipeline.m
 data/example-code/run_split_training_test.m
 data/archive/dataset_complete-old.mat
-results/eda/eda_results_PP1.mat
-results/eda_pipeline/eda_results_PP1.mat
-data/test/training_data.mat
-results/meningioma_ftir_pipeline/patientwise_data.mat
-data/test/training_data.mat
-data/test/training_data.mat
+# Result files (generated, should not be tracked)
+results/**/*.mat
+models/**/*.mat
 archive/test/test/data/data_table_train.mat
 archive/test/test/data/test/training_data.mat
 archive/test/test/data/wavenumbers.mat
