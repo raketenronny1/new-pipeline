@@ -1,13 +1,17 @@
-data/data_table_test.mat
-data/wavenumbers.mat
-data/data_table_train.mat
-data/allspekTable.mat
-data/archive/dataset_complete-old.mat
-data/dataset_complete.mat
+# Data files now tracked by Git LFS
+# (removed from gitignore to allow LFS tracking)
+# data/data_table_test.mat
+# data/wavenumbers.mat
+# data/data_table_train.mat
+# data/allspekTable.mat
+# data/dataset_complete.mat
+# data/metadata_all_patients.mat
+# data/split_info.mat
+
+# Keep ignoring example code
 data/example-code/run_ftir_data_preparation_pipeline.m
 data/example-code/run_split_training_test.m
-data/metadata_all_patients.mat
-data/split_info.mat
+data/archive/dataset_complete-old.mat
 results/eda/eda_results_PP1.mat
 results/eda_pipeline/eda_results_PP1.mat
 data/test/training_data.mat
