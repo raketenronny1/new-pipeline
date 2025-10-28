@@ -9,6 +9,8 @@
 
 ## 🚀 Quick Start
 
+> **⚠️ Important**: This repository uses **Git LFS** for large data files. See [Git LFS Setup Guide](docs/GIT_LFS_SETUP.md) if you're cloning for the first time.
+
 ### **Option 1: Run Complete Pipeline (Recommended)**
 
 ```matlab
@@ -50,7 +52,8 @@ run_pipeline('RunEDA', false, 'NFolds', 3, 'NRepeats', 10)
 - **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Function reference (NEW)
 
 **Additional Resources**:
-- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development history & design decisions
+- **[docs/DEVELOPMENT_HISTORY.md](docs/DEVELOPMENT_HISTORY.md)** - Development history & design decisions
+- **[docs/GIT_LFS_SETUP.md](docs/GIT_LFS_SETUP.md)** - Git LFS configuration guide (NEW)
 - **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Pipeline architecture overview
 
 ## 📁 Project Structure
