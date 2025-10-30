@@ -12,9 +12,13 @@
 data/example-code/run_ftir_data_preparation_pipeline.m
 data/example-code/run_split_training_test.m
 data/archive/dataset_complete-old.mat
+
 # Result files (generated, should not be tracked)
 results/**/*.mat
 models/**/*.mat
+
+# Test output files (generated, can be regenerated)
+tests/integration_test_output/
 archive/test/test/data/data_table_train.mat
 archive/test/test/data/test/training_data.mat
 archive/test/test/data/wavenumbers.mat
