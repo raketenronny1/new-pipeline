@@ -247,24 +247,42 @@ classdef DataLoader < handle
         function spectra_field = detectSpectraField(data_table, verbose)
             %DETECTSPECTRAFIELD Auto-detect which spectra field to use
             
-            % Priority order: prefer preprocessed over raw
-            candidates = {'CombinedSpectra_PP2', 'CombinedSpectra_PP1', ...
-                         'CombinedRawSpectra', 'CombinedSpectra', 'spectra'};
-            
             vars = data_table.Properties.VariableNames;
             
-            for i = 1:length(candidates)
-                if ismember(candidates{i}, vars)
-                    spectra_field = candidates{i};
-                    if verbose
-                        fprintf('  Using spectra field: %s\n', spectra_field);
-                    end
-                    return;
+            % Look for RawSpectra field first (contains all spectra)
+            if ismember('RawSpectra', vars)
+                spectra_field = 'RawSpectra';
+                if verbose
+                    fprintf('  Using spectra field: %s\n', spectra_field);
                 end
+                return;
             end
             
-            error('DataLoader:NoSpectraField', ...
-                'No valid spectra field found in table');
+            % Second priority: MeanRawSpectrum (already aggregated)
+            if ismember('MeanRawSpectrum', vars)
+                spectra_field = 'MeanRawSpectrum';
+                if verbose
+                    fprintf('  Using spectra field: %s (already aggregated per sample)\n', spectra_field);
+                end
+                warning('DataLoader:UsingMeanSpectrum', ...
+                    'Using MeanRawSpectrum - already aggregated per sample');
+                return;
+            end
+            
+            % Fallback: Check for old CombinedRawSpectra (data not cleaned)
+            if ismember('CombinedRawSpectra', vars)
+                spectra_field = 'CombinedRawSpectra';
+                if verbose
+                    fprintf('  Using spectra field: %s (DEPRECATED)\n', spectra_field);
+                end
+                warning('DataLoader:Uncleaned', ...
+                    'Using CombinedRawSpectra - data may not be cleaned. Run prepare_data.m first!');
+                return;
+            end
+            
+            error('DataLoader:NoSpectraField', [...
+                'No raw spectra field found! Expected RawSpectra or MeanRawSpectrum. ' ...
+                'Run prepare_data.m first to clean data files.']);
         end
         
         function [X, y, patient_ids] = extractData(data_table, spectra_field, agg_method, verbose)

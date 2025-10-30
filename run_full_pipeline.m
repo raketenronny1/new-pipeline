@@ -2,6 +2,45 @@
 % Complete production-ready pipeline for patient-level cross-validation
 
 %% ========================================================================
+%% PART 0: VERIFY DATA PREPARATION
+%% ========================================================================
+
+fprintf('=== VERIFYING DATA FILES ===\n');
+
+% Check files exist
+assert(exist('data/data_table_train.mat', 'file') == 2, ...
+    'data_table_train.mat not found!');
+assert(exist('data/data_table_test.mat', 'file') == 2, ...
+    'data_table_test.mat not found!');
+
+% Load and check structure
+train_check = load('data/data_table_train.mat');
+test_check = load('data/data_table_test.mat');
+
+train_vars = train_check.data_table_train.Properties.VariableNames;
+test_vars = test_check.data_table_test.Properties.VariableNames;
+
+% Verify raw spectra fields exist
+has_raw_train = ismember('RawSpectra', train_vars) || ismember('MeanRawSpectrum', train_vars);
+has_raw_test = ismember('RawSpectra', test_vars) || ismember('MeanRawSpectrum', test_vars);
+
+assert(has_raw_train && has_raw_test, ...
+    'Raw spectra fields not found! Run prepare_data.m first.');
+
+% Verify preprocessed columns are removed
+bad_cols = {'CombinedSpectra_PP1', 'CombinedSpectra_PP2', ...
+            'MeanSpectrum_PP1', 'MeanSpectrum_PP2', 'CombinedRawSpectra'};
+found_bad = intersect(bad_cols, train_vars);
+
+if ~isempty(found_bad)
+    error(['Old preprocessed columns still present: %s\n' ...
+           'Run prepare_data.m to clean data files.'], strjoin(found_bad, ', '));
+end
+
+fprintf('✓ Data files verified (raw spectra only)\n\n');
+clear train_check test_check train_vars test_vars bad_cols found_bad has_raw_train has_raw_test;
+
+%% ========================================================================
 %% PART 1: SETUP AND CONFIGURATION
 %% ========================================================================
 
